@@ -86,8 +86,8 @@ class RPlidarNode : public rclcpp::Node
         this->declare_parameter<std::string>("topic_name",std::string("scan"));
         this->declare_parameter<std::string>("scan_mode",std::string());
         this->declare_parameter<float>("scan_frequency",10);
-        this->declare_parameter<float>("desired_angle_min",0.0);
-        this->declare_parameter<float>("desired_angle_max",359.99);
+        this->declare_parameter<float>("cut_angle_min",0.0);
+        this->declare_parameter<float>("cut_angle_max",359.99);
         
         this->get_parameter_or<std::string>("channel_type", channel_type, "serial");
         this->get_parameter_or<std::string>("tcp_ip", tcp_ip, "192.168.0.7"); 
@@ -103,8 +103,8 @@ class RPlidarNode : public rclcpp::Node
         this->get_parameter_or<bool>("auto_standby", auto_standby, false);
         this->get_parameter_or<std::string>("topic_name", topic_name, "scan");
         this->get_parameter_or<std::string>("scan_mode", scan_mode, std::string());
-        this->get_parameter_or<float>("desired_angle_min", desired_angle_min, 0.0);
-        this->get_parameter_or<float>("desired_angle_max", desired_angle_max, 359.99);
+        this->get_parameter_or<float>("cut_angle_min", cut_angle_min, 110.0);
+        this->get_parameter_or<float>("cut_angle_max", cut_angle_max, 250.0);
         if(channel_type == "udp")
             this->get_parameter_or<float>("scan_frequency", scan_frequency, 20.0);
         else
@@ -279,8 +279,8 @@ class RPlidarNode : public rclcpp::Node
                 else
                     apply_index = apply_index + scan_midpoint;
             }
-            // Filter based on the desired angle range
-            if (angle < desired_angle_min ||angle > desired_angle_max || read_value == 0.0) {
+            // Filter based on the cut angle range
+            if ((angle > cut_angle_min && angle < cut_angle_max) || read_value == 0.0) {
                 scan_msg->ranges[apply_index] = std::numeric_limits<float>::infinity(); // Mark as no reading
             } else {
                 scan_msg->ranges[apply_index] = read_value; 
@@ -582,8 +582,8 @@ public:
     float scan_frequency;
     /* State */
     bool is_scanning = false;
-    float desired_angle_min = 0.0f;  // Minimum angle in degrees 
-    float desired_angle_max = 45.0f; // Maximum angle in degrees
+    float cut_angle_min = 0.0f;  // Minimum angle in degrees 
+    float cut_angle_max = 45.0f; // Maximum angle in degrees
 
 
     ILidarDriver *drv = nullptr;
